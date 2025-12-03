@@ -1,8 +1,9 @@
 package com.example.Spotify.entity;
 
+
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.Instant;
+
 import java.util.List;
 
 @Entity
@@ -11,27 +12,20 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "songs")
-public class Song {
+@Table(name = "album")
+public class Album {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
-    private String fileUrl;
-    private String coverUrl;
-    private int duration; // seconds
+    private String coverImage;
 
     @ManyToOne
     @JoinColumn(name = "artist_id")
     private Artist artist;
 
-    @OneToMany(mappedBy = "song")
-    private List<PlaylistSong> playlistSongs;
-
-    @ManyToOne
-    @JoinColumn(name = "album_id")
-    private Album album;
-
-
+    @OneToMany(mappedBy = "album", cascade = CascadeType.ALL)
+    private List<Song> songs;
 }

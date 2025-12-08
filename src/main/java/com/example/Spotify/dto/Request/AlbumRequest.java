@@ -7,4 +7,5 @@ public class AlbumRequest {
 
     private String title;
     private Long artistId;
+    private String coverImage;
 }

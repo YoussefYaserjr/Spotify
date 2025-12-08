@@ -28,4 +28,5 @@ public class Album {
 
     @OneToMany(mappedBy = "album", cascade = CascadeType.ALL)
     private List<Song> songs;
+
 }

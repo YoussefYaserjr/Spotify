@@ -1,19 +1,21 @@
 package com.example.Spotify.service;
 
+import com.example.Spotify.dto.Request.ArtistRequest;
+import com.example.Spotify.dto.Response.ArtistResponse;
 import com.example.Spotify.entity.Artist;
 
 import java.util.List;
-import java.util.Optional;
+
 
 public interface ArtistService {
 
-    Artist createArtist(Artist artist);
+    ArtistResponse createArtist(ArtistRequest artist);
 
-    Artist getArtistById(Long id);
+    ArtistResponse getArtistById(Long id);
 
-    List<Artist> getAllArtists();
+    List<ArtistResponse> getAllArtists();
 
-    Artist updateArtist(Long id, Artist artist);
+    ArtistResponse updateArtist(Long id, ArtistRequest artist);
 
     void deleteArtist(Long id);
 }

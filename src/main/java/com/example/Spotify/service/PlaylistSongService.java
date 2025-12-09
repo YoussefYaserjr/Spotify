@@ -1,16 +1,14 @@
 package com.example.Spotify.service;
 
+import com.example.Spotify.dto.Request.PlaylistSongRequest;
+import com.example.Spotify.dto.Response.PlaylistSongResponse;
 import com.example.Spotify.entity.PlaylistSong;
 
 import java.util.List;
 
 public interface PlaylistSongService {
-
-    PlaylistSong addSongToPlaylist(Long playlistId, Long songId);
-
+    PlaylistSongResponse addSongToPlaylist(PlaylistSongRequest request);
+    List<PlaylistSongResponse> getPlaylistSongs(Long playlistId);
+    PlaylistSongResponse changeOrder(Long playlistId, Long songId, int newOrder);
     void removeSongFromPlaylist(Long playlistId, Long songId);
-
-    List<PlaylistSong> getPlaylistSongs(Long playlistId);
-
-    void changeOrder(Long playlistId, Long songId, int newOrder);
 }

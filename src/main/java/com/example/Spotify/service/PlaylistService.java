@@ -1,18 +1,23 @@
 package com.example.Spotify.service;
 
+import com.example.Spotify.dto.Request.PlaylistRequest;
+import com.example.Spotify.dto.Response.PlaylistResponse;
 import com.example.Spotify.entity.Playlist;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
 public interface PlaylistService {
 
-    Playlist createPlaylist(Playlist playlist);
+    PlaylistResponse createPlaylist(PlaylistRequest playlist);
 
-    Playlist getPlaylist(Long id);
+    PlaylistResponse getPlaylist(Long id);
 
-    List<Playlist> getUserPlaylists(Long userId);
+    List<PlaylistResponse> getUserPlaylists(Long userId);
 
-    Playlist updatePlaylist(Long id, Playlist playlist);
+    PlaylistResponse updatePlaylist(Long id, PlaylistRequest playlist);
 
     void deletePlaylist(Long id);
+
+     List<PlaylistResponse> getAllPlaylists();
 }

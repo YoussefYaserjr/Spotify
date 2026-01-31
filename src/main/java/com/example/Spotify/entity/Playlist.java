@@ -16,14 +16,10 @@ public class Playlist {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-
-
     @OneToMany(mappedBy = "playlist", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")  // ← Case-sensitive! Must match EXACTLY
     private List<PlaylistSong> playlistSongs ;

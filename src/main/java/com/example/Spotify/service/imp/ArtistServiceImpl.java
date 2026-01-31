@@ -3,6 +3,8 @@ package com.example.Spotify.service.imp;
 import com.example.Spotify.dto.Request.ArtistRequest;
 import com.example.Spotify.dto.Response.ArtistResponse;
 import com.example.Spotify.entity.Artist;
+import com.example.Spotify.exception.InvalidInput;
+import com.example.Spotify.exception.ResourceNotFoundException;
 import com.example.Spotify.repository.ArtistRepository;
 import com.example.Spotify.service.ArtistService;
 import org.springframework.stereotype.Service;
@@ -20,27 +22,19 @@ public class ArtistServiceImpl implements ArtistService {
     }
 
     @Override
-    public ArtistResponse createArtist(ArtistRequest artistRequest) {
-        // Basic validation
+    public Artist createArtist(Artist artistRequest) {
+
         if (artistRequest.getName() == null || artistRequest.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Artist name cannot be empty");
+            throw new InvalidInput("Artist name cannot be empty");
         }
 
-        // Convert ArtistRequest to Artist entity
-        Artist artist = new Artist();
-        artist.setName(artistRequest.getName());
-
-        // Save entity
-        Artist savedArtist = artistRepository.save(artist);
-
-        // Convert to ArtistResponse and return
-        return convertToResponse(savedArtist);
+        return artistRepository.save(artistRequest);
     }
 
     @Override
     public ArtistResponse getArtistById(Long id) {
         Artist artist = artistRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Artist not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Artist not found with id: " + id ));
 
         return convertToResponse(artist);
     }
@@ -56,22 +50,17 @@ public class ArtistServiceImpl implements ArtistService {
 
     @Override
     public ArtistResponse updateArtist(Long id, ArtistRequest artistRequest) {
-        // Basic validation
         if (artistRequest.getName() == null || artistRequest.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Artist name cannot be empty");
+            throw new InvalidInput("Artist name cannot be empty");
         }
-
-        // Get existing artist
         Artist existingArtist = artistRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Artist not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Artist not found with id: " + id));
 
-        // Update fields
         existingArtist.setName(artistRequest.getName());
+        existingArtist.setBio(artistRequest.getBio());
+        existingArtist.setCountry(artistRequest.getCountry());
 
-        // Save updated artist
         Artist updatedArtist = artistRepository.save(existingArtist);
-
-        // Convert to response
         return convertToResponse(updatedArtist);
     }
 
@@ -79,7 +68,7 @@ public class ArtistServiceImpl implements ArtistService {
     public void deleteArtist(Long id) {
         // Check if artist exists before deleting
         if (!artistRepository.existsById(id)) {
-            throw new RuntimeException("Artist not found with id: " + id);
+            throw new ResourceNotFoundException("Artist not found with id: " + id);
         }
         artistRepository.deleteById(id);
     }

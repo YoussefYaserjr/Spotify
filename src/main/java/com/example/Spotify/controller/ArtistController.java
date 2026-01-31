@@ -2,6 +2,7 @@ package com.example.Spotify.controller;
 
 import com.example.Spotify.dto.Request.ArtistRequest;
 import com.example.Spotify.dto.Response.ArtistResponse;
+import com.example.Spotify.entity.Artist;
 import com.example.Spotify.service.ArtistService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,38 +20,44 @@ public class ArtistController {
         this.artistService = artistService;
     }
 
-    // Create a new artist
-    @PostMapping
-    public ResponseEntity<ArtistResponse> createArtist(@RequestBody ArtistRequest artistRequest) {
-        ArtistResponse createdArtist = artistService.createArtist(artistRequest);
-        return new ResponseEntity<>(createdArtist, HttpStatus.CREATED);
+    @PostMapping// ✅
+    public ResponseEntity<Artist> createArtist(@RequestBody Artist artist) {
+        Artist savedArtist = artistService.createArtist(artist);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedArtist);
     }
 
-    // Get artist by ID
-    @GetMapping("/{id}")
+
+    @GetMapping("/{id}")//  ✅
     public ResponseEntity<ArtistResponse> getArtistById(@PathVariable Long id) {
         ArtistResponse artist = artistService.getArtistById(id);
         return ResponseEntity.ok(artist);
     }
 
-    // Get all artists
-    @GetMapping
+
+    @GetMapping//   ✅
     public ResponseEntity<List<ArtistResponse>> getAllArtists() {
         List<ArtistResponse> artists = artistService.getAllArtists();
         return ResponseEntity.ok(artists);
     }
 
     // Update artist
-    @PutMapping("/{id}")
-    public ResponseEntity<ArtistResponse> updateArtist(
+    @PutMapping("/{id}")//✅
+    public ResponseEntity<String> updateArtist(
             @PathVariable Long id,
             @RequestBody ArtistRequest artistRequest) {
         ArtistResponse updatedArtist = artistService.updateArtist(id, artistRequest);
-        return ResponseEntity.ok(updatedArtist);
+
+        return ResponseEntity.ok("Artist updated successfully");
+
+        //return ResponseEntity.ok(updatedArtist);
+        /*return ResponseEntity.ok()
+                .header("X-Message", "Artist updated successfully")
+                .header("X-Status", "success")
+                .body(updatedArtist);*/
     }
 
     // Delete artist
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}")//✅
     public ResponseEntity<Void> deleteArtist(@PathVariable Long id) {
         artistService.deleteArtist(id);
         return ResponseEntity.noContent().build();

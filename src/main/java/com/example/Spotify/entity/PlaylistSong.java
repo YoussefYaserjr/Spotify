@@ -12,17 +12,14 @@ import lombok.*;
 @Builder
 @Table(name = "playlist_songs")
 public class PlaylistSong {
-
     @Id
     @ManyToOne
     @JoinColumn(name = "playlist_id")
     private Playlist playlist;
-
     @Id
     @ManyToOne
     @JoinColumn(name = "song_id")
     private Song song;
-
     @Column(name = "order_index")
     private Integer orderIndex;
 }

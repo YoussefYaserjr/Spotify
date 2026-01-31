@@ -4,10 +4,13 @@ import com.example.Spotify.dto.Request.AlbumRequest;
 import com.example.Spotify.dto.Response.AlbumResponse;
 import com.example.Spotify.entity.Album;
 import com.example.Spotify.entity.Artist;
+import com.example.Spotify.exception.InvalidInput;
+import com.example.Spotify.exception.ResourceNotFoundException;
 import com.example.Spotify.repository.AlbumRepository;
 import com.example.Spotify.repository.ArtistRepository;
 import com.example.Spotify.service.AlbumService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,7 +30,7 @@ public class AlbumServiceImpl implements AlbumService {
 
         Album album = Album.builder()
                 .title(request.getTitle())
-                .coverImage(request.getCoverImage())
+
                 .artist(artist)
                 .build();
 
@@ -39,7 +42,7 @@ public class AlbumServiceImpl implements AlbumService {
     @Override
     public AlbumResponse getAlbum(Long id) {
         Album album = albumRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Album not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Album not found"));
 
         return mapToResponse(album);
     }
@@ -52,13 +55,21 @@ public class AlbumServiceImpl implements AlbumService {
 
     @Override
     public List<AlbumResponse> getAlbumsByArtist(Long artistId) {
+        if (!artistRepository.existsById(artistId)) {
+            throw new ResourceNotFoundException("Artist not found with id: " + artistId);
+        }
+        if (albumRepository.findByArtistId(artistId).stream().map(this::mapToResponse).toList().isEmpty()) {
+            throw new InvalidInput("Artist doesn't have Albums ");
+        }
         return albumRepository.findByArtistId(artistId)
                 .stream().map(this::mapToResponse).toList();
+
     }
+
 
     @Override
     public List<AlbumResponse> searchAlbums(String keyword) {
-        return albumRepository.findByTitleContainingIgnoreCase(keyword)
+        return albumRepository.searchAlbums(keyword)
                 .stream().map(this::mapToResponse).toList();
     }
 

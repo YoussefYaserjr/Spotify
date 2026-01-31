@@ -22,7 +22,7 @@ public class Album {
     private String title;
     private String coverImage;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "artist_id")
     private Artist artist;
 

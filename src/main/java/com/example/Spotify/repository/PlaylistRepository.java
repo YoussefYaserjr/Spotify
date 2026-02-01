@@ -34,6 +34,4 @@ public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
 """)
     List<Playlist> findAllWithSongs();
     List<Playlist> findByUserId(Long userId);
-
-
 }

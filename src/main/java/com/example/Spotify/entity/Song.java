@@ -3,6 +3,7 @@ package com.example.Spotify.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,8 +24,8 @@ public class Song {
     @ManyToOne
     @JoinColumn(name = "artist_id")
     private Artist artist;
-    @OneToMany(mappedBy = "song")
-    private List<PlaylistSong> playlistSongs;
+    @OneToMany(mappedBy = "song", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PlaylistSong> playlistSongs = new ArrayList<>();
     @ManyToOne
     @JoinColumn(name = "album_id")
     private Album album;

@@ -135,7 +135,7 @@ public class PlaylistServiceImpl implements PlaylistService {
                     PlaylistSongResponse r = new PlaylistSongResponse();
                     r.setOrderIndex(ps.getOrderIndex());
                     r.setSongId(ps.getSong().getId());
-                    r.setTitle(ps.getSong().getTitle());
+                    r.setPlaylistName(ps.getSong().getTitle());
                     r.setArtistName(ps.getSong().getArtist().getName());
                     return r;
                 })

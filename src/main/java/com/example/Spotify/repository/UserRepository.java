@@ -2,6 +2,7 @@ package com.example.Spotify.repository;
 
 import com.example.Spotify.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 

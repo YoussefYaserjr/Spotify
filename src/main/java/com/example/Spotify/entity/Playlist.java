@@ -21,6 +21,6 @@ public class Playlist {
     @JoinColumn(name = "user_id")
     private User user;
     @OneToMany(mappedBy = "playlist", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("orderIndex ASC")  // ← Case-sensitive! Must match EXACTLY
+    @OrderBy("orderIndex ASC")
     private List<PlaylistSong> playlistSongs ;
 }

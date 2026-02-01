@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface PlaylistSongService {
     PlaylistSongResponse addSongToPlaylist(PlaylistSongRequest request);
-    List<PlaylistSongResponse> getPlaylistSongs(Long playlistId);
+    public void removeSongFromPlaylist(Long playlistId, Long songId);
     PlaylistSongResponse changeOrder(Long playlistId, Long songId, int newOrder);
-    void removeSongFromPlaylist(Long playlistId, Long songId);
 }

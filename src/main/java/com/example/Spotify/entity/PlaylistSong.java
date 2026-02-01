@@ -2,25 +2,25 @@ package com.example.Spotify.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 @Entity
+@Table(name = "playlist_songs")
 @IdClass(PlaylistSongId.class)
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Table(name = "playlist_songs")
 public class PlaylistSong {
-    @Id
-    @ManyToOne
-    @JoinColumn(name = "playlist_id")
+
+    @Id  // Add @Id here
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "playlist_id", nullable = false)
     private Playlist playlist;
-    @Id
-    @ManyToOne
-    @JoinColumn(name = "song_id")
+
+    @Id  // Add @Id here
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "song_id", nullable = false)
     private Song song;
 
     @Column(name = "order_index")
     private Integer orderIndex;
+
 }

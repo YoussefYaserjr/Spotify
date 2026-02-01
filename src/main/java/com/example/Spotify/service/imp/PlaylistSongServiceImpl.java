@@ -4,205 +4,204 @@ import com.example.Spotify.dto.Request.PlaylistSongRequest;
 import com.example.Spotify.dto.Response.PlaylistSongResponse;
 import com.example.Spotify.entity.Playlist;
 import com.example.Spotify.entity.PlaylistSong;
+import com.example.Spotify.entity.PlaylistSongId;
 import com.example.Spotify.entity.Song;
-import com.example.Spotify.repository.PlaylistSongRepository;
+import com.example.Spotify.exception.InvalidInput;
+import com.example.Spotify.exception.ResourceNotFoundException;
 import com.example.Spotify.repository.PlaylistRepository;
+import com.example.Spotify.repository.PlaylistSongRepository;
 import com.example.Spotify.repository.SongRepository;
 import com.example.Spotify.service.PlaylistSongService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PlaylistSongServiceImpl implements PlaylistSongService {
 
-    private final PlaylistSongRepository repo;
-    private final PlaylistRepository playlistRepo;
-    private final SongRepository songRepo;
-
-    public PlaylistSongServiceImpl(
-            PlaylistSongRepository repo,
-            PlaylistRepository playlistRepo,
-            SongRepository songRepo) {
-        this.repo = repo;
-        this.playlistRepo = playlistRepo;
-        this.songRepo = songRepo;
-    }
+    private final PlaylistRepository playlistRepository;
+    private final SongRepository songRepository;
+    private final PlaylistSongRepository playlistSongRepository;
 
     @Override
+    @Transactional
     public PlaylistSongResponse addSongToPlaylist(PlaylistSongRequest request) {
-        // Validate request
-        if (request.getPlaylistId() == null) {
-            throw new IllegalArgumentException("Playlist ID is required");
-        }
-        if (request.getSongId() == null) {
-            throw new IllegalArgumentException("Song ID is required");
-        }
+        // Fetch playlist with songs
+        Playlist playlist = playlistRepository.findByIdWithSongs(request.getPlaylistId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Playlist not found with id: " + request.getPlaylistId()));
 
-        // Check if playlist exists
-        Playlist playlist = playlistRepo.findById(request.getPlaylistId())
-                .orElseThrow(() -> new RuntimeException("Playlist not found with id: " + request.getPlaylistId()));
+        // Fetch song
+        Song song = songRepository.findById(request.getSongId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Song not found with id: " + request.getSongId()));
 
-        // Check if song exists
-        Song song = songRepo.findById(request.getSongId())
-                .orElseThrow(() -> new RuntimeException("Song not found with id: " + request.getSongId()));
+        // Check if song already exists in playlist
+        PlaylistSongId playlistSongId = new PlaylistSongId();
+        playlistSongId.setPlaylist(request.getPlaylistId());
+        playlistSongId.setSong(request.getSongId());
 
-        // Check if song is already in playlist
-        if (repo.existsByPlaylistIdAndSongId(request.getPlaylistId(), request.getSongId())) {
-            throw new RuntimeException("Song is already in the playlist");
+        if (playlistSongRepository.existsById(playlistSongId)) {
+            throw new InvalidInput("Song is already in the playlist");
         }
 
-        // Get next order index
-        int nextOrder = repo.findByPlaylistIdOrderByOrderIndex(request.getPlaylistId()).size();
-
-        // If orderIndex is provided in request, use it (with validation)
+        // Determine order index
+        int orderIndex;
         if (request.getOrderIndex() != null) {
-            List<PlaylistSong> existingSongs = repo.findByPlaylistIdOrderByOrderIndex(request.getPlaylistId());
-            if (request.getOrderIndex() < 0 || request.getOrderIndex() > existingSongs.size()) {
-                throw new IllegalArgumentException("Invalid order index. Must be between 0 and " + existingSongs.size());
-            }
-            nextOrder = request.getOrderIndex();
-
+            orderIndex = request.getOrderIndex();
             // Shift existing songs if needed
-            if (nextOrder < existingSongs.size()) {
-                for (PlaylistSong ps : existingSongs) {
-                    if (ps.getOrderIndex() >= nextOrder) {
-                        ps.setOrderIndex(ps.getOrderIndex() + 1);
-                    }
-                }
-                repo.saveAll(existingSongs);
-            }
+            shiftOrderIndexes(playlist, orderIndex);
+        } else {
+            // Add to end
+            orderIndex = playlist.getPlaylistSongs().isEmpty()
+                    ? 0
+                    : playlist.getPlaylistSongs().stream()
+                    .mapToInt(PlaylistSong::getOrderIndex)
+                    .max()
+                    .orElse(-1) + 1;
         }
 
-        // Create PlaylistSong
-        PlaylistSong playlistSong = new PlaylistSong(playlist, song, nextOrder);
+        // Create and save PlaylistSong
+        PlaylistSong playlistSong = new PlaylistSong();
+        playlistSong.setPlaylist(playlist);
+        playlistSong.setSong(song);
+        playlistSong.setOrderIndex(orderIndex);
 
-        // Save
-        PlaylistSong savedPlaylistSong = repo.save(playlistSong);
+        playlistSongRepository.save(playlistSong);
 
-        // Convert to response and return
-        return convertToResponse(savedPlaylistSong);
+        // Build response
+        return PlaylistSongResponse.builder()
+                .playlistId(playlist.getId())
+                .playlistName(playlist.getName())
+                .songId(song.getId())
+                .songTitle(song.getTitle())
+                .artistName(song.getArtist() != null ? song.getArtist().getName() : null)
+                .albumName(song.getAlbum() != null ? song.getAlbum().getTitle() : null)
+                .orderIndex(orderIndex)
+                .totalSongs(playlist.getPlaylistSongs().size() + 1)
+                .message("Song added successfully to playlist")
+                .build();
     }
 
     @Override
+    @Transactional
     public void removeSongFromPlaylist(Long playlistId, Long songId) {
-        // Check if playlist exists
-        if (!playlistRepo.existsById(playlistId)) {
-            throw new RuntimeException("Playlist not found with id: " + playlistId);
-        }
+        // Verify playlist exists
+        Playlist playlist = playlistRepository.findByIdWithSongs(playlistId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Playlist not found with id: " + playlistId));
 
-        // Check if song exists
-        if (!songRepo.existsById(songId)) {
-            throw new RuntimeException("Song not found with id: " + songId);
-        }
+        // Create composite key
+        PlaylistSongId playlistSongId = new PlaylistSongId();
+        playlistSongId.setPlaylist(playlistId);
+        playlistSongId.setSong(songId);
 
-        // Check if the song exists in playlist
-        if (!repo.existsByPlaylistIdAndSongId(playlistId, songId)) {
-            throw new RuntimeException("Song not found in playlist");
-        }
+        // Find and delete
+        PlaylistSong playlistSong = playlistSongRepository.findById(playlistSongId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Song not found in playlist"));
 
-        // Get the order index of the song being removed
-        List<PlaylistSong> songs = repo.findByPlaylistIdOrderByOrderIndex(playlistId);
-        PlaylistSong songToRemove = songs.stream()
-                .filter(ps -> ps.getSong().getId().equals(songId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Song not found in playlist"));
+        int removedIndex = playlistSong.getOrderIndex();
 
-        int removedOrder = songToRemove.getOrderIndex();
+        playlistSongRepository.delete(playlistSong);
 
-        // Remove the song
-        repo.deleteByPlaylistIdAndSongId(playlistId, songId);
-
-        // Reorder remaining songs
-        List<PlaylistSong> remainingSongs = repo.findByPlaylistIdOrderByOrderIndex(playlistId);
-        for (PlaylistSong ps : remainingSongs) {
-            if (ps.getOrderIndex() > removedOrder) {
-                ps.setOrderIndex(ps.getOrderIndex() - 1);
-                repo.save(ps);
-            }
-        }
+        // Reorder remaining songs to fill the gap
+        reorderAfterRemoval(playlist, removedIndex);
     }
 
     @Override
-    public List<PlaylistSongResponse> getPlaylistSongs(Long playlistId) {
-        // Check if playlist exists
-        if (!playlistRepo.existsById(playlistId)) {
-            throw new RuntimeException("Playlist not found with id: " + playlistId);
-        }
-
-        List<PlaylistSong> playlistSongs = repo.findByPlaylistIdOrderByOrderIndex(playlistId);
-
-        return playlistSongs.stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
+    @Transactional
     public PlaylistSongResponse changeOrder(Long playlistId, Long songId, int newOrder) {
-        List<PlaylistSong> songs = repo.findByPlaylistIdOrderByOrderIndex(playlistId);
+        // Fetch playlist with songs
+        Playlist playlist = playlistRepository.findByIdWithSongs(playlistId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Playlist not found with id: " + playlistId));
 
-        // Find the song to move
-        PlaylistSong songToMove = songs.stream()
-                .filter(ps -> ps.getSong().getId().equals(songId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Song not found in playlist"));
+        // Create composite key
+        PlaylistSongId playlistSongId = new PlaylistSongId();
+        playlistSongId.setPlaylist(playlistId);
+        playlistSongId.setSong(songId);
 
-        int oldOrder = songToMove.getOrderIndex();
+        // Find the playlist song
+        PlaylistSong playlistSong = playlistSongRepository.findById(playlistSongId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Song not found in playlist"));
+
+        int oldIndex = playlistSong.getOrderIndex();
+
+        if (oldIndex == newOrder) {
+            // No change needed
+            Song song = playlistSong.getSong();
+            return buildResponse(playlist, song, newOrder);
+        }
 
         // Validate new order
-        if (newOrder < 0 || newOrder >= songs.size()) {
-            throw new IllegalArgumentException("Invalid new order position. Must be between 0 and " + (songs.size() - 1));
+        if (newOrder < 0 || newOrder >= playlist.getPlaylistSongs().size()) {
+            throw new IllegalArgumentException("Invalid order index: " + newOrder);
         }
 
-        // If position hasn't changed, return current
-        if (oldOrder == newOrder) {
-            return convertToResponse(songToMove);
-        }
+        // Remove from current position
+        playlist.getPlaylistSongs().remove(playlistSong);
 
-        // Shift songs between old and new positions
-        if (oldOrder < newOrder) {
-            // Moving down: shift songs up (decrease their index)
-            for (PlaylistSong ps : songs) {
-                int currentIndex = ps.getOrderIndex();
-                if (currentIndex > oldOrder && currentIndex <= newOrder) {
-                    ps.setOrderIndex(currentIndex - 1);
+        // Shift other songs
+        if (newOrder < oldIndex) {
+            // Moving up - shift songs down
+            for (PlaylistSong ps : playlist.getPlaylistSongs()) {
+                if (ps.getOrderIndex() >= newOrder && ps.getOrderIndex() < oldIndex) {
+                    ps.setOrderIndex(ps.getOrderIndex() + 1);
+                    playlistSongRepository.save(ps);
                 }
             }
         } else {
-            // Moving up: shift songs down (increase their index)
-            for (PlaylistSong ps : songs) {
-                int currentIndex = ps.getOrderIndex();
-                if (currentIndex >= newOrder && currentIndex < oldOrder) {
-                    ps.setOrderIndex(currentIndex + 1);
+            // Moving down - shift songs up
+            for (PlaylistSong ps : playlist.getPlaylistSongs()) {
+                if (ps.getOrderIndex() > oldIndex && ps.getOrderIndex() <= newOrder) {
+                    ps.setOrderIndex(ps.getOrderIndex() - 1);
+                    playlistSongRepository.save(ps);
                 }
             }
         }
 
-        // Set the new position for the song being moved
-        songToMove.setOrderIndex(newOrder);
+        // Update the song's position
+        playlistSong.setOrderIndex(newOrder);
+        playlistSongRepository.save(playlistSong);
 
-        // Save all changes
-        repo.saveAll(songs);
-
-        // Return updated response
-        return convertToResponse(songToMove);
+        Song song = playlistSong.getSong();
+        return buildResponse(playlist, song, newOrder);
     }
 
-    // Helper method to convert PlaylistSong entity to PlaylistSongResponse
-    private PlaylistSongResponse convertToResponse(PlaylistSong playlistSong) {
-        PlaylistSongResponse response = new PlaylistSongResponse();
-        response.setSongId(playlistSong.getSong().getId());
-        response.setTitle(playlistSong.getSong().getTitle()); // Assuming Song has getTitle()
-
-        // Assuming Song has getArtist() and Artist has getName()
-        if (playlistSong.getSong().getArtist() != null) {
-            response.setArtistName(playlistSong.getSong().getArtist().getName());
-        } else {
-            response.setArtistName("Unknown");
+    private void shiftOrderIndexes(Playlist playlist, int fromIndex) {
+        for (PlaylistSong ps : playlist.getPlaylistSongs()) {
+            if (ps.getOrderIndex() >= fromIndex) {
+                ps.setOrderIndex(ps.getOrderIndex() + 1);
+                playlistSongRepository.save(ps);
+            }
         }
+    }
 
-        response.setOrderIndex(playlistSong.getOrderIndex());
-        return response;
+    private void reorderAfterRemoval(Playlist playlist, int removedIndex) {
+        for (PlaylistSong ps : playlist.getPlaylistSongs()) {
+            if (ps.getOrderIndex() > removedIndex) {
+                ps.setOrderIndex(ps.getOrderIndex() - 1);
+                playlistSongRepository.save(ps);
+            }
+        }
+    }
+
+    private PlaylistSongResponse buildResponse(Playlist playlist, Song song, int orderIndex) {
+        return PlaylistSongResponse.builder()
+                .playlistId(playlist.getId())
+                .playlistName(playlist.getName())
+                .songId(song.getId())
+                .songTitle(song.getTitle())
+                .artistName(song.getArtist() != null ? song.getArtist().getName() : null)
+                .albumName(song.getAlbum() != null ? song.getAlbum().getTitle() : null)
+                .orderIndex(orderIndex)
+                .totalSongs(playlist.getPlaylistSongs().size())
+                .message("Order changed successfully")
+                .build();
     }
 }

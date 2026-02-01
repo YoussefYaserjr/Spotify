@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/playlists")
+@RequestMapping("/api/playlists")
 @RequiredArgsConstructor
 public class PlaylistController {
 

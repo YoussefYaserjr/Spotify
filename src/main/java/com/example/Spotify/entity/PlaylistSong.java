@@ -20,6 +20,7 @@ public class PlaylistSong {
     @ManyToOne
     @JoinColumn(name = "song_id")
     private Song song;
+
     @Column(name = "order_index")
     private Integer orderIndex;
 }

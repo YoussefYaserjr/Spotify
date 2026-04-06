@@ -38,7 +38,14 @@ public class ArtistServiceImpl implements ArtistService {
 
         return convertToResponse(artist);
     }
-
+    // In your ArtistService implementation
+    @Override
+    public List<ArtistResponse> getArtistByName(String name) {
+        List<Artist> artists = artistRepository.findByName(name);
+        return artists.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
     @Override
     public List<ArtistResponse> getAllArtists() {
         List<Artist> artists = artistRepository.findAll();

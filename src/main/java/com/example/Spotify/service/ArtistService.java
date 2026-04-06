@@ -12,7 +12,7 @@ public interface ArtistService {
     Artist createArtist(Artist  artist);
 
     ArtistResponse getArtistById(Long id);
-
+    List<ArtistResponse> getArtistByName(String name);
     List<ArtistResponse> getAllArtists();
 
     ArtistResponse updateArtist(Long id, ArtistRequest artist);

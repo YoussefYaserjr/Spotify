@@ -1,0 +1,65 @@
+[33mcommit 1c941f238bc9f47e378f395be6311dd9b4aba005[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: YoussefYaserjr <yy1170@fayoum.edu.eg>
+Date:   Thu Mar 5 11:12:09 2026 +0200
+
+    Adding Spring-AOP Aspect in controller
+
+[33mcommit c7dc9b04647a9497be9e80bc90d4f27a8896f0ac[m
+Author: YoussefYaserjr <yy1170@fayoum.edu.eg>
+Date:   Mon Feb 2 23:57:12 2026 +0200
+
+    notes
+
+[33mcommit ac6fb0a42d979d87872022cb9709d90f34ab770f[m
+Author: YoussefYaserjr <yy1170@fayoum.edu.eg>
+Date:   Sun Feb 1 03:52:18 2026 +0200
+
+    Fix API V3-playlistSong missing data
+
+[33mcommit 6c6bd73568147fd44ef13574261d9212ec8419ab[m
+Author: YoussefYaserjr <yy1170@fayoum.edu.eg>
+Date:   Sun Feb 1 02:03:03 2026 +0200
+
+    Fix API V2-playlist missing data
+
+[33mcommit 636a8c4dd3d23b3b75a98efbbb062881b86377ae[m
+Author: YoussefYaserjr <yy1170@fayoum.edu.eg>
+Date:   Sat Jan 31 02:25:32 2026 +0200
+
+    API fix V1
+
+[33mcommit 5a7d187656d4505f9b8a79c1100dfe1d520ba225[m
+Author: YoussefYaserjr <yy1170@fayoum.edu.eg>
+Date:   Tue Dec 9 05:17:33 2025 +0200
+
+    Controller d't Debgg
+
+[33mcommit 9180b19585009ab19f3cd52626debd513b675f4c[m
+Author: YoussefYaserjr <yy1170@fayoum.edu.eg>
+Date:   Mon Dec 8 15:57:25 2025 +0200
+
+    add Album infrastructre and fix bugs
+
+[33mcommit fc9bde460254203cb0a0fd3f86314ef04889bbb1[m
+Author: YoussefYaserjr <yy1170@fayoum.edu.eg>
+Date:   Wed Dec 3 23:36:51 2025 +0200
+
+    Mapper &DTO's
+
+[33mcommit 18bc5887060e965e571992a94c261dccb5bfff3a[m
+Author: YoussefYaserjr <yy1170@fayoum.edu.eg>
+Date:   Tue Dec 2 21:03:39 2025 +0200
+
+    Service interface & serciveImp
+
+[33mcommit 9fe29a60c7c647af5fd07a48cae726f9b2383517[m
+Author: YoussefYaserjr <yy1170@fayoum.edu.eg>
+Date:   Tue Dec 2 19:41:13 2025 +0200
+
+    Repository Layer
+
+[33mcommit 2daeee7da4c4be432dfaebe121b785dcd63ccd29[m
+Author: YoussefYaserjr <yy1170@fayoum.edu.eg>
+Date:   Mon Dec 1 17:00:48 2025 +0200
+
+    DB desing

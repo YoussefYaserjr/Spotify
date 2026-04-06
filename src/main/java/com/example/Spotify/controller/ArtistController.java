@@ -32,7 +32,11 @@ public class ArtistController {
         ArtistResponse artist = artistService.getArtistById(id);
         return ResponseEntity.ok(artist);
     }
-
+    @GetMapping("/name/{name}")//  ✅
+    public ResponseEntity<List<ArtistResponse>> getArtistByName(@PathVariable String name) {
+        List<ArtistResponse> artists = artistService.getArtistByName(name);
+        return ResponseEntity.ok(artists);
+    }
 
     @GetMapping//   ✅
     public ResponseEntity<List<ArtistResponse>> getAllArtists() {
